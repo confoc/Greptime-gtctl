@@ -62,6 +62,7 @@ type clusterCreateCliOptions struct {
 	Config             string
 	GreptimeBinVersion string
 	EnableCache        bool
+	//************************************//
 	//***************Add******************//
 	EnableEtcd bool
 
