@@ -30,10 +30,12 @@ import (
 	"github.com/GreptimeTeam/gtctl/pkg/metadata"
 )
 
+// 创建了cluster，也就是集群，这个集群可以进行一系列动作
 type Cluster struct {
 	config       *config.BareMetalClusterConfig
 	createNoDirs bool
 	enableCache  bool
+	enableEtcd   bool
 
 	am artifacts.Manager
 	mm metadata.Manager
@@ -53,6 +55,7 @@ type ClusterComponents struct {
 	Etcd     components.ClusterComponent
 }
 
+// 定义了ClusterComponents方法，来创建了这个接口指针
 func NewClusterComponents(config *config.BareMetalClusterComponentsConfig, workingDirs components.WorkingDirs,
 	wg *sync.WaitGroup, logger logger.Logger) *ClusterComponents {
 	return &ClusterComponents{
@@ -81,6 +84,16 @@ func WithGreptimeVersion(version string) Option {
 func WithEnableCache(enableCache bool) Option {
 	return func(c *Cluster) {
 		c.enableCache = enableCache
+	}
+}
+
+//****************************************//
+//******************Add*******************//
+//****************************************//
+
+func WithEnableEtcd(enableEtcd bool) Option {
+	return func(c *Cluster) {
+		c.enableEtcd = enableEtcd
 	}
 }
 

@@ -32,6 +32,7 @@ type clusterConnectCliOptions struct {
 	Protocol  string
 }
 
+// 利用cobra.Command来设计命令
 func NewConnectCommand(l logger.Logger) *cobra.Command {
 	var options clusterConnectCliOptions
 

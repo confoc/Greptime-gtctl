@@ -31,7 +31,7 @@ func TestCollectPidsForBareMetal(t *testing.T) {
 		"c": "789",
 	}
 
-	ret := collectPidsForBareMetal(pidsPath)
+	ret := collectPidsForBareMetal(pidsPath) //用pidspath进行测试，收集结果
 
 	assert.Equal(t, want, ret)
 }

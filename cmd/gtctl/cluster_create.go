@@ -62,6 +62,8 @@ type clusterCreateCliOptions struct {
 	Config             string
 	GreptimeBinVersion string
 	EnableCache        bool
+	//***************Add******************//
+	EnableEtcd bool
 
 	// Common options.
 	Timeout int
@@ -109,6 +111,8 @@ func NewCreateClusterCommand(l logger.Logger) *cobra.Command {
 	cmd.Flags().StringVar(&options.GreptimeDBClusterValuesFile, "greptimedb-cluster-values-file", "", "The values file for greptimedb cluster.")
 	cmd.Flags().StringVar(&options.EtcdClusterValuesFile, "etcd-cluster-values-file", "", "The values file for etcd cluster.")
 	cmd.Flags().StringVar(&options.GreptimeDBOperatorValuesFile, "greptimedb-operator-values-file", "", "The values file for greptimedb operator.")
+	//***************Add******************//
+	cmd.Flags().BoolVar(&options.EnableEtcd, "memory-meta-storage", true, "Bootstrap the whole cluster without installing etcd for testing purposes through using the memory storage of metasrv in bare-metal mode.")
 
 	return cmd
 }
@@ -177,12 +181,17 @@ func NewCluster(args []string, options *clusterCreateCliOptions, l logger.Logger
 		Spinner: spinner,
 	}
 
+	//options存储命令行选项参数
+	//如果options里面的BareMetal参数为true的话，执行该循环
 	var cluster opt.Operations
 	if options.BareMetal {
 		l.V(0).Infof("Creating GreptimeDB cluster '%s' on bare-metal", logger.Bold(clusterName))
 
 		var opts []baremetal.Option
 		opts = append(opts, baremetal.WithEnableCache(options.EnableCache))
+		//********************Add****************//
+		opts = append(opts, baremetal.WithEnableEtcd(options.EnableEtcd))
+
 		if len(options.GreptimeBinVersion) > 0 {
 			opts = append(opts, baremetal.WithGreptimeVersion(options.GreptimeBinVersion))
 		}
@@ -199,7 +208,7 @@ func NewCluster(args []string, options *clusterCreateCliOptions, l logger.Logger
 			opts = append(opts, baremetal.WithReplaceConfig(&cfg))
 		}
 
-		cluster, err = baremetal.NewCluster(l, clusterName, opts...)
+		cluster, err = baremetal.NewCluster(l, clusterName, opts...) //现在我们创建了这个cluster结构,enableEtcd随着NewCluster一起传入cluster中
 		if err != nil {
 			return err
 		}
@@ -214,7 +223,8 @@ func NewCluster(args []string, options *clusterCreateCliOptions, l logger.Logger
 		}
 	}
 
-	if err = cluster.Create(ctx, createOptions); err != nil {
+	//我们在这里调用了cluster.create
+	if err = cluster.Create(ctx, createOptions); err != nil { //调用cluster.create，转到create函数
 		return err
 	}
 
@@ -223,8 +233,8 @@ func NewCluster(args []string, options *clusterCreateCliOptions, l logger.Logger
 	}
 
 	if options.BareMetal {
-		bm, _ := cluster.(*baremetal.Cluster)
-		if err = bm.Wait(ctx, false); err != nil {
+		bm, _ := cluster.(*baremetal.Cluster)      //数据断言
+		if err = bm.Wait(ctx, false); err != nil { //调用cluster.Wait
 			return err
 		}
 	}
